@@ -1,0 +1,35 @@
+semantic_models:
+  - name: consumption
+    description: "Household consumption at 15-minute grain, with price and tariff context."
+    model: ref('fct_consumption_intervals')
+    defaults:
+      agg_time_dimension: interval_start_utc
+    entities:
+      - name: household
+        type: foreign
+        expr: household_id
+      - name: consumption
+        type: primary
+        expr: consumption_sk
+    dimensions:
+      - name: interval_start_utc
+        type: time
+        type_params:
+          time_granularity: day
+      - name: grid_zone
+        type: categorical
+      - name: tariff_type
+        type: categorical
+    measures:
+      - name: total_consumption_kwh
+        agg: sum
+        expr: consumption_kwh
+      - name: total_spot_cost_eur
+        agg: sum
+        expr: spot_cost_eur
+      - name: total_dynamic_cost_eur
+        agg: sum
+        expr: dynamic_tariff_cost_eur
+      - name: active_households_count
+        agg: count_distinct
+        expr: household_id

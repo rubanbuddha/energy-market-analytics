@@ -1,0 +1,42 @@
+name: dbt CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+env:
+  DBT_PROFILES_DIR: .
+  DBT_TARGET: ci
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install
+        run: pip install -r requirements.txt
+      - name: dbt deps
+        run: dbt deps
+      - name: Download prod manifest for Slim CI
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: prod-manifest
+          path: ./state/
+      - name: dbt build (modified+ if state available)
+        run: |
+          if [ -f ./state/manifest.json ]; then
+            dbt build --select state:modified+ --defer --state ./state
+          else
+            dbt build
+          fi
+        env:
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+      - name: sqlfluff lint
+        run: sqlfluff lint models --dialect bigquery --templater dbt

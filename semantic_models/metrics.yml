@@ -1,0 +1,33 @@
+metrics:
+  - name: total_consumption_kwh
+    label: Total Consumption (kWh)
+    type: simple
+    type_params:
+      measure: total_consumption_kwh
+
+  - name: active_households
+    label: Active Households
+    type: simple
+    type_params:
+      measure: active_households_count
+
+  - name: avg_consumption_per_household_kwh
+    label: Avg Consumption per Household (kWh)
+    type: ratio
+    type_params:
+      numerator: total_consumption_kwh
+      denominator: active_households
+
+  - name: avg_household_bill_eur
+    label: Avg Household Bill (EUR)
+    type: ratio
+    type_params:
+      numerator: total_dynamic_cost_eur
+      denominator: active_households
+
+  - name: avg_price_eur_per_kwh
+    label: Avg Price (EUR/kWh)
+    type: ratio
+    type_params:
+      numerator: total_dynamic_cost_eur
+      denominator: total_consumption_kwh

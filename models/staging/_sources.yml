@@ -1,0 +1,42 @@
+version: 2
+
+sources:
+  - name: raw_epex
+    database: "{{ env_var('DBT_GCP_PROJECT', target.project) }}"
+    schema: raw_epex
+    description: "Day-ahead spot prices from EPEX Spot, landed by dlt."
+    tables:
+      - name: day_ahead_prices
+        columns:
+          - name: delivery_hour_utc
+            tests: [not_null]
+          - name: grid_zone
+            tests:
+              - not_null
+              - accepted_values:
+                  values: ['50Hertz', 'Amprion', 'TenneT', 'TransnetBW']
+          - name: price_eur_per_mwh
+            tests: [not_null]
+
+  - name: raw_meters
+    database: "{{ env_var('DBT_GCP_PROJECT', target.project) }}"
+    schema: raw_meters
+    tables:
+      - name: meter_readings
+        columns:
+          - name: reading_ts_utc
+            tests: [not_null]
+          - name: household_id
+            tests: [not_null]
+          - name: consumption_kwh
+            tests: [not_null]
+      - name: households
+        columns:
+          - name: household_id
+            tests: [not_null, unique]
+      - name: tariff_versions
+        columns:
+          - name: tariff_id
+            tests: [not_null]
+          - name: effective_from_utc
+            tests: [not_null]

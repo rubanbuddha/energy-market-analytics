@@ -1,0 +1,64 @@
+version: 2
+
+models:
+  - name: dim_date
+    description: "Standard date dimension, one row per calendar day."
+    columns:
+      - name: date_key
+        tests: [unique, not_null]
+
+  - name: dim_hour
+    description: "24-row hour-of-day dimension with daypart classification."
+    columns:
+      - name: hour_key
+        tests:
+          - unique
+          - not_null
+          - dbt_utils.accepted_range: {min_value: 0, max_value: 23}
+      - name: daypart
+        tests:
+          - accepted_values:
+              values: ['Night', 'Morning peak', 'Midday', 'Evening peak', 'Late evening']
+
+  - name: dim_household
+    columns:
+      - name: household_key
+        tests: [unique, not_null]
+      - name: grid_zone
+        tests:
+          - relationships:
+              to: ref('dim_grid_zone')
+              field: grid_zone
+
+  - name: dim_tariff
+    description: "SCD Type 2 on tariff."
+    columns:
+      - name: tariff_key
+        tests: [unique, not_null]
+      - name: tariff_id
+        tests: [not_null]
+      - name: effective_from_utc
+        tests: [not_null]
+
+  - name: fct_consumption_intervals
+    description: "One row per household per 15-minute interval."
+    columns:
+      - name: consumption_sk
+        tests: [unique, not_null]
+      - name: household_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_household')
+              field: household_id
+      - name: consumption_kwh
+        tests:
+          - not_null
+          - dbt_utils.accepted_range: {min_value: 0, max_value: 50}
+
+  - name: fct_tariff_positions
+    columns:
+      - name: total_kwh
+        tests:
+          - not_null
+          - dbt_utils.accepted_range: {min_value: 0}

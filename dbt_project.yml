@@ -1,0 +1,40 @@
+name: 'energy_market_analytics'
+version: '1.0.0'
+config-version: 2
+profile: 'energy_market_analytics'
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+clean-targets: ["target", "dbt_packages"]
+
+models:
+  energy_market_analytics:
+    staging:
+      +materialized: view
+      +schema: staging
+    intermediate:
+      +materialized: ephemeral
+    marts:
+      dimensions:
+        +materialized: table
+        +schema: marts
+      facts:
+        +materialized: incremental
+        +schema: marts
+        +on_schema_change: append_new_columns
+      metrics:
+        +materialized: table
+        +schema: metrics
+
+seeds:
+  energy_market_analytics:
+    +schema: seeds
+    +quote_columns: false
+
+vars:
+  start_date: '2024-01-01'
+  grid_zones: ['50Hertz', 'Amprion', 'TenneT', 'TransnetBW']
